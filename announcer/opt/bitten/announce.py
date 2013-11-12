@@ -68,7 +68,7 @@ class BittenAnnouncement(Component):
                     yield subscriber
 
     def matches(self, event):
-        yield
+        yield ()
 
     def description(self):
         return 'notify me bitten changes NOT IMPLEMENTED'
