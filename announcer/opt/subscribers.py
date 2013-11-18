@@ -83,11 +83,14 @@ class GeneralWikiSubscriber(Component):
                 self.env, klass, 'wiki')
 
         def match(pattern):
-            for raw in pattern['target'].split(' '):
-                if raw != '':
-                    pat = urllib.unquote(raw).replace('*', '.*')
-                    if re.match(pat, event.target.name):
-                        return True
+            for raw in pattern['target'].splitlines():
+                raw = raw.strip()
+                if not raw:
+                    continue
+                pat = re.compile('.*'.join(re.escape(urllib.unquote(val))
+                                 for val in raw.split('*')) + r'\Z')
+                if pat.match(event.target.name):
+                    return True
 
         sids = set(map(lambda x: (x['sid'],x['authenticated']),
                                   filter(match, attrs)))
