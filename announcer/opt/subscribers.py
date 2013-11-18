@@ -88,7 +88,7 @@ class GeneralWikiSubscriber(Component):
                 if not raw:
                     continue
                 pat = re.compile('.*'.join(re.escape(urllib.unquote(val))
-                                 for val in raw.split('*')) + r'\Z')
+                                           for val in raw.split('*')) + r'\Z')
                 if pat.match(event.target.name):
                     return True
 
