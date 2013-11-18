@@ -23,7 +23,7 @@ import time
 from email.Charset import Charset, QP, BASE64
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
-from email.Utils import formatdate, formataddr
+from email.Utils import formatdate, formataddr, parseaddr
 try:
     from email.header import Header
 except:
@@ -397,10 +397,11 @@ class EmailDistributor(Component):
                  pubkey_ids=[]):
 
         # Prepare sender for use in IEmailSender component and message header.
-        from_header = formataddr(
-            (self.from_name and self.from_name or self.env.project_name,
-             self.email_from)
-        )
+        from_name = self.from_name or self.env.project_name
+        if from_name:
+            from_header = (from_name, self.email_from)
+        else:
+            from_header = self.email_from
         headers = dict()
         headers['Message-ID'] = self._message_id(event.realm)
         headers['Date'] = formatdate()
@@ -432,7 +433,7 @@ class EmailDistributor(Component):
 
         # Write header data into message object.
         for k, v in headers.iteritems():
-            set_header(rootMessage, k, v)
+            set_header(rootMessage, k, v, self._charset)
 
         output = formatter.format(transport, event.realm, format, event)
 
@@ -498,7 +499,8 @@ class EmailDistributor(Component):
             decorator = decorators.pop()
             decorator.decorate_message(event, rootMessage, decorators)
 
-        package = (from_header, recip_adds, rootMessage.as_string())
+        from_name, from_addr = parseaddr(rootMessage['From'])
+        package = (from_addr, recip_adds, rootMessage.as_string())
         start = time.time()
         if self.use_threaded_delivery:
             self.get_delivery_queue().put(package)
